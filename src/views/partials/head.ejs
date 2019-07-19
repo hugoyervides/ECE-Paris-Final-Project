@@ -1,0 +1,56 @@
+<meta charset="UTF-8">
+<script src="https://kit.fontawesome.com/847e5bc9a5.js"></script>
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <i class="fas fa-database"></i> DatData
+        </a>
+        <div class="form-inline my-2 my-lg-0">
+            <span class="navbar-brand">Welcome back <span id="name"><%= name %></span>!</span>
+            <button class="btn btn-warning mr-2" onclick="logout()">Logout</button>
+            <button class="btn btn-danger my-2 my-sm-0" onclick="buttonDelete()">Delete account!</button>
+        </div>
+    </div>
+</nav>
+
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+<script>
+    //Declaracion de variables
+    var userField = document.getElementById('name')
+    //Funcion sleep
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    //Funcion para lanzar el boton de eliminar usuario
+    function buttonDelete(){
+        //Desplegar Swal
+        swal({
+            title: "Are you sure?",
+            text: "Once deleted, you will not be able to recover this user!",
+            icon: "warning",
+            buttons: true,
+            dangerMode: true,
+          }).then((willDelete) => {
+            if (willDelete) {
+                $.ajax({
+                    type: "DELETE",
+                    url: "delete",
+                    data: {'username':userField.innerHTML},
+                    complete: function(msg){
+                        window.location.href = 'logout'
+                    }
+                });
+            } else {
+              swal("Your user is safe!");
+            }
+          });
+    }
+    //Funcion para hacer logut
+    function logout(){
+        window.location.href = 'logout'
+    }
+</script>
+<script src="/js/jquery-3.4.1.min.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.js"></script>

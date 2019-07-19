@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+      <% include partials/head %>
+  </head>
+  <body>
+    <div class="container my-4">
+      <center>
+        <canvas id="myChart" width="400" height="100"></canvas>
+        <button type="button" class="btn btn-primary mb-2" id="newMetric" onclick="addNewMetric()">New metric</button>
+        <button type="button" class="btn btn-danger mb-2" id="deleteMetric" onclick="deleteMetrics()">Delete Metrics</button>
+      </center>
+          <table class="table">
+              <thead class="thead-dark">
+                <tr>
+                  <th scope="col">Time Stamp</th>
+                  <th scope="col">Value</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="metrics">
+              </tbody>
+            </table>
+    </div>
+    <script>
+        //Funcion para eliminar las metricas
+        function deleteMetrics(){
+          $.ajax({
+            type: "DELETE",
+            url: "metrics",
+            complete: function(msg){
+              swal("Success!","Metrics deleted","success")
+              $('#metrics').empty()
+              getMetricsFromDb()
+              fillGraph()
+            }
+        });
+        }
+        //Ajax para obtener las metrica 
+        function getMetricsFromDb(){
+          $.getJSON("/metrics/"+ userField.innerHTML , {}, (data) => {
+            const content = data.map(d => {
+              return '<tr><td>'+d.timestamp+'</td> <td>'+d.value+''+'</td></tr>';
+            })
+            $('#metrics').append(content.join("\n"));
+          });
+        }
+        //Funcion para agregar una nueva metrica a la base de datos
+        function addNewMetric(){
+          swal({
+            text: 'Insert a metric',
+            content: "input",
+            button: {
+              text: "Insert!",
+              closeModal: false,
+            },
+          })
+          .then(name => {
+            if (!name) throw null;
+            //Preparar AJAX para ENDPOINT
+            var rightNow = new Date();
+              var dataMet = {'timestamp':rightNow.toISOString(), 'value': name}
+              $.ajax({
+                type: "POST",
+                url: "metrics",
+                data: dataMet,
+                complete: function(msg){
+                  $('#metrics').empty()
+                  getMetricsFromDb()
+                  fillGraph()
+                  return swal("Metric added to DB!")
+                }
+            });
+          })
+          .catch(err => {
+            if (err) {
+              swal("Oh noes!", "The AJAX request failed!", "error");
+            } else {
+              swal.stopLoading();
+              swal.close();
+            }
+          });
+        }
+        //Funcion para llenar grafica
+        function fillGraph(){
+          $.getJSON("/metrics/"+ userField.innerHTML , {}, (data) => {
+            var ctx = document.getElementById('myChart');
+            var timestamps = [];
+            var values = [];
+            for( var i = 0, n = data.length;  i < n;  ++i ) {
+                var o = data[i];
+                timestamps[i] = o.timestamp;
+                values[i] = o.value
+            }
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: timestamps,
+                    datasets: [{
+                        label: 'Metrics',
+                        data: values,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    }
+                }
+            });
+          });
+        }
+        getMetricsFromDb()
+        fillGraph()
+    </script>
+  </body>
+</html>
